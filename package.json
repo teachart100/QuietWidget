@@ -1,0 +1,46 @@
+{
+  "name": "quiet-widget",
+  "version": "1.0.0",
+  "description": "Quiet overlay widget",
+  "author": "You",
+  "private": true,
+  "main": "run-electron.js",
+  "scripts": {
+    "start": "electron .",
+    "pack:win": "electron-builder --win portable --config.win.sign=false",
+    "build:win": "electron-builder --win nsis --config.win.sign=false"
+  },
+  "build": {
+    "appId": "com.quietwidget.app",
+    "productName": "QuietWidget",
+    "files": [
+      "run-electron.js",
+      "Assets/**",
+      "package.json"
+    ],
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "publish": null,
+    "win": {
+      "target": [
+        { "target": "portable", "arch": ["x64"] },
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "sign": false
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "forceCodeSigning": false
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}
