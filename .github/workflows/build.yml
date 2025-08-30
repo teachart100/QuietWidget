@@ -1,0 +1,45 @@
+name: Build Windows App (Unpacked via electron-packager)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Add electron-packager (dev)
+        run: npm i -D electron-packager@17
+
+      # Build an unpacked Windows app folder (no installer, no signing)
+      - name: Package (unpacked)
+        run: >
+          npx electron-packager . quiet-widget
+          --platform=win32 --arch=x64 --out=release --overwrite
+          --asar=false --prune=false
+
+      # Normalize the folder name to something friendly
+      - name: Rename output folder
+        shell: pwsh
+        run: |
+          $out = Get-ChildItem -Directory release | Select-Object -First 1
+          Rename-Item $out.FullName release\QuietWidget-win64
+
+      # Upload the folder as the artifact (GitHub zips it once on download)
+      - name: Upload artifact (single-zip on download)
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuietWidget-win64
+          path: release/QuietWidget-win64
+          if-no-files-found: error
