@@ -14,32 +14,28 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 22
 
       - name: Install deps
-        run: npm install
+        run: npm i
 
-      - name: Add electron-packager (dev)
-        run: npm i -D electron-packager@17
+      - name: Pack (electron-packager)
+        run: npx electron-packager . QuietWidget --platform=win32 --arch=x64 --out release --overwrite --asar
 
-      # Build an unpacked Windows app folder (no installer, no signing)
-      - name: Package (unpacked)
-        run: >
-          npx electron-packager . quiet-widget
-          --platform=win32 --arch=x64 --out=release --overwrite
-          --asar=false --prune=false
-
-      # Normalize the folder name to something friendly
-      - name: Rename output folder
+      - name: Normalize output folder name
         shell: pwsh
         run: |
-          $out = Get-ChildItem -Directory release | Select-Object -First 1
-          Rename-Item $out.FullName release\QuietWidget-win64
+          $out = Get-ChildItem -Path release -Directory | Select-Object -First 1
+          if (-not $out) { throw "No output dir found under 'release'." }
 
-      # Upload the folder as the artifact (GitHub zips it once on download)
-      - name: Upload artifact (single-zip on download)
+          $newName = 'QuietWidget-win64'
+          $dest = Join-Path $out.Parent.FullName $newName
+
+          if (Test-Path $dest) { Remove-Item -Recurse -Force $dest }
+          Rename-Item -Path $out.FullName -NewName $newName
+
+      - name: Upload artifact (folder, not zipped)
         uses: actions/upload-artifact@v4
         with:
           name: QuietWidget-win64
           path: release/QuietWidget-win64
-          if-no-files-found: error
